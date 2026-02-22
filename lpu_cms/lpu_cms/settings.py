@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'attendance',
     'crispy_forms',
     'crispy_bootstrap5',
+    'food',
 ]
 
 MIDDLEWARE = [
@@ -68,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'attendance.context_processors.user_roles',
             ],
         },
     },

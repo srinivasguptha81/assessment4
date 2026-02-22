@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}Your Cart — {{ stall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+  @media (max-width: 860px) { .cart-layout { grid-template-columns: 1fr; } }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--rule);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cart-item {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .cart-item:hover { border-color: var(--gold); }
+  .cart-item-name { font-weight: 600; font-size: 14px; flex: 1; }
+  .cart-item-qty { font-size: 13px; color: var(--slate); }
+  .cart-item-price { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--gold); font-size: 15px; }
+  .cart-item-remove {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .cart-item-remove:hover { background: #fef2f2; }
+
+  .order-summary {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: sticky;
+    top: 80px;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    padding: 6px 0;
+    color: var(--slate);
+  }
+  .summary-row.total {
+    border-top: 2px solid var(--rule);
+    margin-top: 10px;
+    padding-top: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .summary-row.total span:last-child {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 17px;
+  }
+
+  .slot-card {
+    border: 2px solid var(--rule);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .slot-card:hover { border-color: var(--gold); background: #fdf8f0; }
+  .slot-card.selected { border-color: var(--gold); background: #fdf8f0; }
+  .slot-card input[type=radio] { display: none; }
+  .slot-label { font-weight: 600; font-size: 13.5px; }
+  .slot-time { font-size: 12px; color: var(--slate); }
+  .slot-availability {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .slot-avail-ok { background: #d4f4dd; color: #1a6b35; }
+  .slot-avail-low { background: #fef3c7; color: #92400e; }
+  .slot-avail-full { background: #fde8e8; color: #b91c1c; }
+
+  .checkout-btn {
+    display: block;
+    width: 100%;
+    padding: 13px 0;
+    background: var(--ink);
+    color: var(--gold);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+    margin-top: 18px;
+  }
+  .checkout-btn:hover { opacity: 0.85; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+  <a href="{% url 'food:stall_menu' stall.id %}" class="btn-outline" style="font-size:12px;padding:6px 12px;">
+    <i class="bi bi-arrow-left"></i> Back to Menu
+  </a>
+  <h1 style="font-family:'Playfair Display',serif;font-size:20px;margin:0;">Your Cart — {{ stall.name }}</h1>
+</div>
+
+<div class="cart-layout">
+
+  <!-- Left: Cart items + slot selection -->
+  <div>
+    <div class="section-title"><i class="bi bi-cart3"></i> Order Items</div>
+
+    {% for ci in cart_items %}
+    <div class="cart-item" id="cart-row-{{ ci.item.id }}">
+      <div class="cart-item-name">
+        <span style="font-size:11px;color:{% if ci.item.is_veg %}#16a34a{% else %}#dc2626{% endif %};">●</span>
+        {{ ci.item.name }}
+      </div>
+      <span class="cart-item-qty">× {{ ci.quantity }}</span>
+      <span class="cart-item-price">₹{{ ci.subtotal }}</span>
+      <button class="cart-item-remove" onclick="removeItem({{ ci.item.id }})" title="Remove">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+    {% endfor %}
+
+    <div style="margin-top:20px;">
+      <div class="section-title"><i class="bi bi-clock"></i> Choose Pick-up Slot</div>
+
+      <form method="post" action="{% url 'food:checkout' stall.id %}" id="orderForm">
+        {% csrf_token %}
+        {% for slot in form.fields.slot.queryset %}
+        {% with left=slot.slots_left %}
+        <label class="slot-card {% if slot.is_full %}opacity-50{% endif %}" onclick="selectSlot(this)" for="slot-{{ slot.id }}">
+          <input type="radio" name="slot" id="slot-{{ slot.id }}" value="{{ slot.id }}" {% if slot.is_full %}disabled{% endif %}>
+          <div>
+            <div class="slot-label">{{ slot.label }}</div>
+            <div class="slot-time">{{ slot.start_time|time:"g:i A" }} – {{ slot.end_time|time:"g:i A" }}</div>
+          </div>
+          <span class="slot-availability {% if slot.is_full %}slot-avail-full{% elif left <= 5 %}slot-avail-low{% else %}slot-avail-ok{% endif %}">
+            {% if slot.is_full %}Full{% elif left <= 5 %}{{ left }} left{% else %}{{ left }} slots{% endif %}
+          </span>
+        </label>
+        {% endwith %}
+        {% endfor %}
+
+        <div style="margin-top:16px;">
+          <label style="font-size:13px;font-weight:500;color:var(--ink);display:block;margin-bottom:6px;">
+            Special Instructions <span style="color:var(--slate);font-weight:400;">(optional)</span>
+          </label>
+          <textarea name="note" class="form-control" rows="2" placeholder="e.g. No onions, extra spicy…" style="font-size:13px;resize:none;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;width:100%;"></textarea>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right: Summary -->
+  <div>
+    <div class="order-summary">
+      <div class="section-title" style="font-size:16px;">📋 Order Summary</div>
+
+      {% for ci in cart_items %}
+      <div class="summary-row">
+        <span>{{ ci.item.name }} ×{{ ci.quantity }}</span>
+        <span>₹{{ ci.subtotal }}</span>
+      </div>
+      {% endfor %}
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>₹{{ grand_total }}</span>
+      </div>
+
+      <button class="checkout-btn" onclick="document.getElementById('orderForm').submit();">
+        <i class="bi bi-bag-check"></i> Place Order
+      </button>
+
+      <a href="{% url 'food:clear_cart' %}" style="display:block;text-align:center;margin-top:12px;font-size:12px;color:#e53e3e;">
+        <i class="bi bi-trash"></i> Clear Cart
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function selectSlot(label) {
+    document.querySelectorAll('.slot-card').forEach(l => l.classList.remove('selected'));
+    label.classList.add('selected');
+    label.querySelector('input').checked = true;
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let c of cookies) {
+        const cookie = c.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function removeItem(itemId) {
+    fetch(`/food/api/cart/remove/${itemId}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) location.reload();
+    });
+  }
+</script>
+{% endblock %}

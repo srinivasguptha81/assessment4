@@ -21,294 +21,123 @@
   --rule:       rgba(15,14,12,0.1);
   --sidebar-w:  260px;
 }
-
 * { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--cream); color:var(--ink); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; }
 
-body {
-  background: var(--cream);
-  color: var(--ink);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 300;
-  min-height: 100vh;
-}
+/* SIDEBAR */
+.sidebar { position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh; background:var(--ink); color:var(--cream); display:flex; flex-direction:column; overflow-y:auto; z-index:100; }
+.sidebar-brand { padding:28px 24px 20px; border-bottom:1px solid rgba(255,255,255,0.07); }
+.brand-crest { width:42px; height:42px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--ink); margin-bottom:10px; }
+.brand-name { font-family:'Playfair Display',serif; font-size:16px; font-weight:600; line-height:1.3; }
+.brand-sub { font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:rgba(247,244,238,0.35); margin-top:3px; }
+.nav-section { padding:18px 0 6px; }
+.nav-section-label { font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(247,244,238,0.25); padding:0 24px 6px; font-weight:500; display:block; }
+.nav-link { display:flex; align-items:center; gap:11px; padding:9px 24px; font-size:13px; color:rgba(247,244,238,0.6) !important; border-left:2px solid transparent; text-decoration:none; transition:all 0.18s; }
+.nav-link:hover { color:var(--cream) !important; background:rgba(255,255,255,0.04); }
+.nav-link.active { color:var(--gold) !important; border-left-color:var(--gold); background:rgba(201,168,76,0.08); }
+.nav-link i { font-size:14px; width:17px; }
+.sidebar-footer { margin-top:auto; padding:16px 24px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:10px; }
+.user-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--rust)); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; color:white; flex-shrink:0; text-transform:uppercase; }
+.user-name { font-size:12.5px; font-weight:500; color:var(--cream); }
+.user-role { font-size:10.5px; color:rgba(247,244,238,0.35); }
 
-/* ── SIDEBAR ── */
-.sidebar {
-  position: fixed;
-  top: 0; left: 0;
-  width: var(--sidebar-w);
-  height: 100vh;
-  background: var(--ink);
-  color: var(--cream);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 100;
-}
+/* TOPBAR */
+.topbar { position:fixed; top:0; left:var(--sidebar-w); right:0; height:60px; background:rgba(247,244,238,0.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--rule); display:flex; align-items:center; padding:0 32px; gap:16px; z-index:99; }
+.topbar-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:600; }
+.topbar-actions { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.icon-btn { width:36px; height:36px; border-radius:8px; border:1px solid var(--rule); background:white; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; transition:all 0.18s; text-decoration:none; color:var(--ink); }
+.icon-btn:hover { background:var(--parchment); border-color:var(--gold); color:var(--ink); }
 
-.sidebar-brand {
-  padding: 28px 24px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
+/* PAGE */
+.page-wrap { margin-left:var(--sidebar-w); padding-top:60px; min-height:100vh; }
+.page-content { padding:32px; }
 
-.brand-crest {
-  width: 42px; height: 42px;
-  background: var(--gold);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; font-weight: 700;
-  color: var(--ink); margin-bottom: 10px;
-}
+/* CARDS */
+.lpu-card { background:white; border:1px solid var(--rule); border-radius:14px; overflow:hidden; }
+.lpu-card-header { padding:16px 22px 14px; border-bottom:1px solid var(--rule); display:flex; align-items:center; justify-content:space-between; }
+.lpu-card-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:600; }
+.lpu-card-body { padding:22px; }
 
-.brand-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 16px; font-weight: 600; line-height: 1.3;
-}
+/* STAT CARDS */
+.stat-card { background:white; border:1px solid var(--rule); border-radius:12px; padding:20px 22px; position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.07); }
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+.stat-card.gold::before  { background:var(--gold); }
+.stat-card.rust::before  { background:var(--rust); }
+.stat-card.green::before { background:var(--forest); }
+.stat-card.blue::before  { background:#5b7ec9; }
+.stat-icon  { font-size:22px; margin-bottom:12px; display:block; }
+.stat-value { font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:var(--ink); line-height:1; display:block; }
+.stat-label { font-size:11px; color:var(--slate); text-transform:uppercase; letter-spacing:0.08em; font-weight:500; margin-top:4px; }
 
-.brand-sub {
-  font-size: 10px; letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(247,244,238,0.35); margin-top: 3px;
-}
+/* TABLES */
+.lpu-table { width:100%; border-collapse:collapse; font-size:13px; }
+.lpu-table thead th { text-align:left; padding:11px 18px; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--slate); font-weight:500; border-bottom:1px solid var(--rule); background:var(--cream); white-space:nowrap; }
+.lpu-table tbody tr { border-bottom:1px solid var(--rule); transition:background 0.15s; }
+.lpu-table tbody tr:last-child { border-bottom:none; }
+.lpu-table tbody tr:hover { background:rgba(247,244,238,0.8); }
+.lpu-table td { padding:12px 18px; vertical-align:middle; }
 
-.nav-section { padding: 18px 0 6px; }
+/* BADGES */
+.status-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:3px 9px; border-radius:20px; font-weight:500; }
+.badge-present  { background:#d4e8c4; color:#2d5016; }
+.badge-absent   { background:#f5d4d4; color:#7a1f1f; }
+.badge-late     { background:#e8d5a3; color:#7a5c00; }
+.badge-excused  { background:#d4ddf5; color:#2d3f80; }
+.badge-warning  { background:#f5d4d4; color:#7a1f1f; }
+.badge-safe     { background:#d4e8c4; color:#2d5016; }
 
-.nav-section-label {
-  font-size: 9.5px; letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(247,244,238,0.25);
-  padding: 0 24px 6px; font-weight: 500;
-}
+/* PROGRESS */
+.att-bar-bg   { height:8px; background:var(--parchment); border-radius:4px; overflow:hidden; }
+.att-bar-fill { height:100%; border-radius:4px; transition:width 1s ease; animation:barGrow 1s ease 0.4s both; }
 
-.nav-link {
-  display: flex; align-items: center; gap: 11px;
-  padding: 9px 24px; font-size: 13px;
-  color: rgba(247,244,238,0.6) !important;
-  border-left: 2px solid transparent;
-  text-decoration: none; transition: all 0.18s;
-}
+/* BUTTONS */
+.btn-gold { background:var(--gold); color:var(--ink); border:none; border-radius:8px; padding:9px 20px; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.18s; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+.btn-gold:hover { background:#b8943a; color:var(--ink); }
+.btn-ink { background:var(--ink); color:var(--cream); border:none; border-radius:8px; padding:9px 20px; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.18s; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+.btn-ink:hover { background:#2a2926; color:var(--cream); }
+.btn-outline { background:transparent; color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:8px 18px; font-size:13px; cursor:pointer; transition:all 0.18s; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
 
-.nav-link:hover { color: var(--cream) !important; background: rgba(255,255,255,0.04); }
+/* ALERTS */
+.lpu-alert { border-radius:10px; padding:12px 16px; font-size:13px; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+.lpu-alert.success { background:#d4e8c4; color:#2d5016; border:1px solid #b8d4a0; }
+.lpu-alert.error   { background:#f5d4d4; color:#7a1f1f; border:1px solid #e8b0b0; }
+.lpu-alert.info    { background:#d4ddf5; color:#2d3f80; border:1px solid #aab8e8; }
+.lpu-alert.warning { background:#e8d5a3; color:#7a5c00; border:1px solid #d4bc7a; }
 
-.nav-link.active {
-  color: var(--gold) !important;
-  border-left-color: var(--gold);
-  background: rgba(201,168,76,0.08);
-}
+/* FORMS */
+.lpu-form label { font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:var(--slate); margin-bottom:6px; }
+.lpu-form .form-control, .lpu-form .form-select { border:1px solid var(--rule); border-radius:8px; padding:9px 13px; font-size:13.5px; font-family:'DM Sans',sans-serif; background:white; transition:border-color 0.18s; }
+.lpu-form .form-control:focus, .lpu-form .form-select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,0.12); outline:none; }
 
-.nav-link i { font-size: 14px; width: 17px; }
+/* BANNER */
+.page-banner { background:var(--ink); border-radius:16px; padding:26px 30px; margin-bottom:28px; position:relative; overflow:hidden; }
+.page-banner::before { content:''; position:absolute; right:-30px; top:-30px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle,rgba(201,168,76,0.18) 0%,transparent 70%); }
+.banner-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(201,168,76,0.14); border:1px solid rgba(201,168,76,0.28); color:var(--gold-light); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 10px; border-radius:20px; margin-bottom:10px; font-weight:500; }
+.banner-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:var(--cream); line-height:1.25; }
+.banner-sub   { font-size:13px; color:rgba(247,244,238,0.45); margin-top:4px; }
 
-.nav-badge {
-  margin-left: auto; background: var(--rust); color: white;
-  font-size: 9px; font-family: 'DM Mono', monospace;
-  padding: 2px 6px; border-radius: 10px;
-}
+/* MISC */
+.mono { font-family:'DM Mono',monospace; }
+.text-gold { color:var(--gold); }
+.text-rust { color:var(--rust); }
+.divider { border:none; border-top:1px solid var(--rule); margin:20px 0; }
 
-.sidebar-footer {
-  margin-top: auto; padding: 16px 24px;
-  border-top: 1px solid rgba(255,255,255,0.07);
-  display: flex; align-items: center; gap: 10px;
-}
-
-.user-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), var(--rust));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; color: white;
-  flex-shrink: 0; text-transform: uppercase;
-}
-
-.user-name { font-size: 12.5px; font-weight: 500; color: var(--cream); }
-.user-role { font-size: 10.5px; color: rgba(247,244,238,0.35); }
-
-/* ── TOPBAR ── */
-.topbar {
-  position: fixed; top: 0;
-  left: var(--sidebar-w); right: 0;
-  height: 60px;
-  background: rgba(247,244,238,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--rule);
-  display: flex; align-items: center;
-  padding: 0 32px; gap: 16px; z-index: 99;
-}
-
-.topbar-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 18px; font-weight: 600;
-}
-
-.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-
-.icon-btn {
-  width: 36px; height: 36px; border-radius: 8px;
-  border: 1px solid var(--rule); background: white;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 15px; transition: all 0.18s;
-  text-decoration: none; color: var(--ink);
-}
-
-.icon-btn:hover { background: var(--parchment); border-color: var(--gold); color: var(--ink); }
-
-/* ── PAGE WRAPPER ── */
-.page-wrap { margin-left: var(--sidebar-w); padding-top: 60px; min-height: 100vh; }
-.page-content { padding: 32px; }
-
-/* ── CARDS ── */
-.lpu-card { background: white; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
-
-.lpu-card-header {
-  padding: 16px 22px 14px; border-bottom: 1px solid var(--rule);
-  display: flex; align-items: center; justify-content: space-between;
-}
-
-.lpu-card-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; }
-.lpu-card-body { padding: 22px; }
-
-/* ── STAT CARDS ── */
-.stat-card {
-  background: white; border: 1px solid var(--rule); border-radius: 12px;
-  padding: 20px 22px; position: relative; overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
-
-.stat-card::before {
-  content: ''; position: absolute;
-  top: 0; left: 0; right: 0; height: 3px;
-  border-radius: 12px 12px 0 0;
-}
-
-.stat-card.gold::before  { background: var(--gold); }
-.stat-card.rust::before  { background: var(--rust); }
-.stat-card.green::before { background: var(--forest); }
-.stat-card.blue::before  { background: #5b7ec9; }
-
-.stat-icon  { font-size: 22px; margin-bottom: 12px; display: block; }
-.stat-value { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: var(--ink); line-height: 1; display: block; }
-.stat-label { font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; margin-top: 4px; }
-
-/* ── TABLES ── */
-.lpu-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-
-.lpu-table thead th {
-  text-align: left; padding: 11px 18px;
-  font-size: 10px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--slate);
-  font-weight: 500; border-bottom: 1px solid var(--rule);
-  background: var(--cream); white-space: nowrap;
-}
-
-.lpu-table tbody tr { border-bottom: 1px solid var(--rule); transition: background 0.15s; }
-.lpu-table tbody tr:last-child { border-bottom: none; }
-.lpu-table tbody tr:hover { background: rgba(247,244,238,0.8); }
-.lpu-table td { padding: 12px 18px; vertical-align: middle; }
-
-/* ── BADGES ── */
-.status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; }
-.badge-present  { background: #d4e8c4; color: #2d5016; }
-.badge-absent   { background: #f5d4d4; color: #7a1f1f; }
-.badge-late     { background: #e8d5a3; color: #7a5c00; }
-.badge-excused  { background: #d4ddf5; color: #2d3f80; }
-.badge-warning  { background: #f5d4d4; color: #7a1f1f; }
-.badge-safe     { background: #d4e8c4; color: #2d5016; }
-
-/* ── PROGRESS BAR ── */
-.att-bar-bg   { height: 8px; background: var(--parchment); border-radius: 4px; overflow: hidden; }
-.att-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; animation: barGrow 1s ease 0.4s both; }
-
-/* ── BUTTONS ── */
-.btn-gold {
-  background: var(--gold); color: var(--ink);
-  border: none; border-radius: 8px; padding: 9px 20px;
-  font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: all 0.18s; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.btn-gold:hover { background: #b8943a; color: var(--ink); }
-
-.btn-ink {
-  background: var(--ink); color: var(--cream);
-  border: none; border-radius: 8px; padding: 9px 20px;
-  font-size: 13px; font-weight: 500; cursor: pointer;
-  transition: all 0.18s; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.btn-ink:hover { background: #2a2926; color: var(--cream); }
-
-.btn-outline {
-  background: transparent; color: var(--ink);
-  border: 1px solid var(--rule); border-radius: 8px;
-  padding: 8px 18px; font-size: 13px; cursor: pointer;
-  transition: all 0.18s; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
-
-/* ── ALERTS ── */
-.lpu-alert {
-  border-radius: 10px; padding: 12px 16px;
-  font-size: 13px; margin-bottom: 20px;
-  display: flex; align-items: center; gap: 10px;
-}
-.lpu-alert.success { background: #d4e8c4; color: #2d5016; border: 1px solid #b8d4a0; }
-.lpu-alert.error   { background: #f5d4d4; color: #7a1f1f; border: 1px solid #e8b0b0; }
-.lpu-alert.info    { background: #d4ddf5; color: #2d3f80; border: 1px solid #aab8e8; }
-.lpu-alert.warning { background: #e8d5a3; color: #7a5c00; border: 1px solid #d4bc7a; }
-
-/* ── FORMS ── */
-.lpu-form label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate); margin-bottom: 6px; }
-.lpu-form .form-control, .lpu-form .form-select { border: 1px solid var(--rule); border-radius: 8px; padding: 9px 13px; font-size: 13.5px; font-family: 'DM Sans', sans-serif; background: white; transition: border-color 0.18s; }
-.lpu-form .form-control:focus, .lpu-form .form-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); outline: none; }
-
-/* ── BANNER ── */
-.page-banner {
-  background: var(--ink); border-radius: 16px;
-  padding: 26px 30px; margin-bottom: 28px;
-  position: relative; overflow: hidden;
-}
-.page-banner::before {
-  content: ''; position: absolute; right: -30px; top: -30px;
-  width: 180px; height: 180px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%);
-}
-
-.banner-tag {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(201,168,76,0.14); border: 1px solid rgba(201,168,76,0.28);
-  color: var(--gold-light); font-size: 10px; letter-spacing: 0.1em;
-  text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
-  margin-bottom: 10px; font-weight: 500;
-}
-
-.banner-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: var(--cream); line-height: 1.25; }
-.banner-sub   { font-size: 13px; color: rgba(247,244,238,0.45); margin-top: 4px; }
-
-/* ── MISC ── */
-.mono { font-family: 'DM Mono', monospace; }
-.text-gold { color: var(--gold); }
-.text-rust { color: var(--rust); }
-.divider { border: none; border-top: 1px solid var(--rule); margin: 20px 0; }
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.fade-up   { animation: fadeUp 0.4s ease both; }
-.fade-up-1 { animation: fadeUp 0.4s ease 0.05s both; }
-.fade-up-2 { animation: fadeUp 0.4s ease 0.10s both; }
-.fade-up-3 { animation: fadeUp 0.4s ease 0.15s both; }
-.fade-up-4 { animation: fadeUp 0.4s ease 0.20s both; }
-@keyframes barGrow { from { width: 0; } }
+/* ANIMATIONS */
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+.fade-up   { animation:fadeUp 0.4s ease both; }
+.fade-up-1 { animation:fadeUp 0.4s ease 0.05s both; }
+.fade-up-2 { animation:fadeUp 0.4s ease 0.10s both; }
+.fade-up-3 { animation:fadeUp 0.4s ease 0.15s both; }
+.fade-up-4 { animation:fadeUp 0.4s ease 0.20s both; }
+@keyframes barGrow { from { width:0; } }
 </style>
 {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- ══ SIDEBAR ══ -->
 <aside class="sidebar">
   <div class="sidebar-brand">
     <div class="brand-crest">L</div>
@@ -316,85 +145,144 @@ body {
     <div class="brand-sub">Smart Campus CMS</div>
   </div>
 
-  {% if user.is_staff %}
-  <div class="nav-section">
-    <div class="nav-section-label">Admin</div>
-    <a href="{% url 'attendance:admin_dashboard' %}" class="nav-link {% block nav_admin %}{% endblock %}">
-      <i class="bi bi-grid-1x2"></i> Dashboard
-    </a>
-    <a href="/admin/" class="nav-link"><i class="bi bi-sliders"></i> Django Admin</a>
-  </div>
+  <!-- STALL OWNER — only sees food management, nothing else -->
+  {% if is_stall_owner %}
+    <div class="nav-section">
+      <div class="nav-section-label">My Stall</div>
+      <a href="{% url 'food:owner_dashboard' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'owner_dashboard' %}active{% endif %}">
+        <i class="bi bi-receipt"></i> Orders Today
+      </a>
+      <a href="{% url 'food:manage_menu' %}"
+         class="nav-link {% if 'manage-menu' in request.path %}active{% endif %}">
+        <i class="bi bi-journal-text"></i> Manage Menu
+      </a>
+      <a href="{% url 'food:demand_analytics' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'demand_analytics' %}active{% endif %}">
+        <i class="bi bi-graph-up"></i> AI Analytics
+      </a>
+    </div>
+
+  {% else %}
+    <!-- ADMIN -->
+    {% if user.is_staff %}
+    <div class="nav-section">
+      <div class="nav-section-label">Admin</div>
+      <a href="{% url 'attendance:admin_dashboard' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-1x2"></i> Dashboard
+      </a>
+      <a href="/admin/" class="nav-link">
+        <i class="bi bi-sliders"></i> Django Admin
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- FACULTY / ADMIN ATTENDANCE -->
+    {% if user.is_staff or faculty %}
+    <div class="nav-section">
+      <div class="nav-section-label">Attendance</div>
+      <a href="{% url 'attendance:faculty_dashboard' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'faculty_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Faculty Dashboard
+      </a>
+      <a href="{% url 'attendance:start_session' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'start_session' %}active{% endif %}">
+        <i class="bi bi-plus-circle"></i> Start Session
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- STUDENT ATTENDANCE -->
+    {% if student %}
+    <div class="nav-section">
+      <div class="nav-section-label">Attendance</div>
+      <a href="{% url 'attendance:student_dashboard' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+        <i class="bi bi-person-circle"></i> My Attendance
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- FOOD (students & faculty) -->
+    <div class="nav-section">
+      <div class="nav-section-label">Food</div>
+      <a href="{% url 'food:stall_list' %}"
+         class="nav-link {% if 'food' in request.path and 'orders' not in request.path %}active{% endif %}">
+        <i class="bi bi-grid"></i> Browse Stalls
+      </a>
+      <a href="{% url 'food:my_orders' %}"
+         class="nav-link {% if request.resolver_match.url_name == 'my_orders' or request.resolver_match.url_name == 'order_detail' %}active{% endif %}">
+        <i class="bi bi-bag"></i> My Orders
+      </a>
+    </div>
   {% endif %}
 
-  {% with faculty=request.user.faculty %}{% if faculty %}
-  <div class="nav-section">
-    <div class="nav-section-label">Faculty</div>
-    <a href="{% url 'attendance:faculty_dashboard' %}" class="nav-link {% block nav_faculty %}{% endblock %}">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-    <a href="{% url 'attendance:start_session' %}" class="nav-link {% block nav_session %}{% endblock %}">
-      <i class="bi bi-plus-circle"></i> Start Session
-    </a>
-  </div>
-  {% endif %}{% endwith %}
-
-  {% with student=request.user.student %}{% if student %}
-  <div class="nav-section">
-    <div class="nav-section-label">Student</div>
-    <a href="{% url 'attendance:student_dashboard' %}" class="nav-link {% block nav_student %}{% endblock %}">
-      <i class="bi bi-person-circle"></i> My Attendance
-    </a>
-  </div>
-  {% endif %}{% endwith %}
-
+  <!-- ACCOUNT (everyone) -->
   <div class="nav-section">
     <div class="nav-section-label">Account</div>
-    <a href="{% url 'attendance:dashboard' %}" class="nav-link"><i class="bi bi-house"></i> Home</a>
-<form method="post" action="/accounts/logout/" style="margin:0;">
-  {% csrf_token %}
-  <button type="submit" class="nav-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;">
-    <i class="bi bi-box-arrow-left"></i> Logout
-  </button>
-</form>  </div>
+    {% if not is_stall_owner %}
+    <a href="{% url 'attendance:dashboard' %}" class="nav-link">
+      <i class="bi bi-house"></i> Home
+    </a>
+    {% endif %}
+    <form method="post" action="/accounts/logout/" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="nav-link"
+              style="width:100%;background:none;border:none;cursor:pointer;text-align:left;">
+        <i class="bi bi-box-arrow-left"></i> Logout
+      </button>
+    </form>
+  </div>
 
+  <!-- USER FOOTER -->
   <div class="sidebar-footer">
-    <div class="user-avatar">{{ request.user.first_name|first }}{{ request.user.last_name|first }}</div>
+    <div class="user-avatar">
+      {{ request.user.first_name|first }}{{ request.user.last_name|first }}
+    </div>
     <div>
       <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
       <div class="user-role">
-        {% if request.user.is_staff %}Administrator
-        {% elif request.user.faculty %}Faculty
-        {% else %}Student{% endif %}
+        {% if is_stall_owner %}Stall Owner
+        {% elif request.user.is_staff %}Administrator
+        {% elif faculty %}Faculty
+        {% elif student %}Student
+        {% else %}{{ request.user.username }}{% endif %}
       </div>
     </div>
   </div>
 </aside>
 
-<!-- TOPBAR -->
+<!-- ══ TOPBAR ══ -->
 <header class="topbar">
   <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
   <div class="topbar-actions">
-    <a href="{% url 'attendance:dashboard' %}" class="icon-btn" title="Home"><i class="bi bi-house"></i></a>
+    {% if is_stall_owner %}
+      <a href="{% url 'food:owner_dashboard' %}" class="icon-btn" title="Orders"><i class="bi bi-receipt"></i></a>
+      <a href="{% url 'food:manage_menu' %}" class="icon-btn" title="Manage Menu"><i class="bi bi-journal-text"></i></a>
+    {% elif student %}
+      <a href="{% url 'attendance:dashboard' %}" class="icon-btn" title="Home"><i class="bi bi-house"></i></a>
+      <a href="{% url 'food:my_orders' %}" class="icon-btn" title="My Orders"><i class="bi bi-bag"></i></a>
+    {% endif %}
     <form method="post" action="/accounts/logout/" style="margin:0;">
-  {% csrf_token %}
-  <button type="submit" class="icon-btn" title="Logout" style="background:white;border:1px solid var(--rule);cursor:pointer;">
-    <i class="bi bi-box-arrow-left"></i>
-  </button>
-</form>
+      {% csrf_token %}
+      <button type="submit" class="icon-btn" title="Logout"
+              style="background:white;border:1px solid var(--rule);cursor:pointer;">
+        <i class="bi bi-box-arrow-left"></i>
+      </button>
+    </form>
   </div>
 </header>
 
-<!-- PAGE WRAP -->
+<!-- ══ CONTENT ══ -->
 <div class="page-wrap">
   <div class="page-content">
-
     {% for message in messages %}
     <div class="lpu-alert {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
       <i class="bi bi-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
       {{ message }}
     </div>
     {% endfor %}
-
     {% block content %}{% endblock %}
   </div>
 </div>

@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% block title %}AI Demand Analytics — {{ stall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .analytics-header {
+    background: linear-gradient(135deg, var(--ink), #1a2a1a);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .analytics-header h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 20px; margin: 0 0 4px 0; }
+  .analytics-header p { color: rgba(255,255,255,0.5); font-size: 12.5px; margin: 0; }
+
+  .analytics-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .analytics-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .chart-subtitle { font-size: 12px; color: var(--slate); margin-bottom: 20px; }
+
+  .ai-card {
+    background: white;
+    border: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    letter-spacing: 0.06em;
+  }
+  .ai-prediction-hour {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .ai-predicted-count {
+    font-size: 42px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .ai-unit { font-size: 14px; color: var(--slate); font-weight: 400; }
+  .confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  .conf-badge {
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .conf-High { background: #d4f4dd; color: #1a6b35; }
+  .conf-Medium { background: #fef3c7; color: #92400e; }
+  .conf-Low { background: #fde8e8; color: #b91c1c; }
+
+  .advice-box {
+    background: var(--parchment);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    margin-top: 14px;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+  .advice-box strong { color: var(--ink); }
+
+  .peak-stat {
+    background: var(--parchment);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .peak-icon { font-size: 28px; }
+  .peak-label { font-size: 12px; color: var(--slate); font-weight: 500; }
+  .peak-value { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+  .theory-box {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 20px;
+    grid-column: 1 / -1;
+  }
+  .theory-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .theory-box p { font-size: 12.5px; color: var(--slate); line-height: 1.7; margin: 0; }
+
+  .total-badge {
+    background: var(--ink);
+    color: var(--gold);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="analytics-header">
+  <div>
+    <h1><i class="bi bi-graph-up"></i> AI Demand Analytics</h1>
+    <p>{{ stall.name }} · Last 7 days · Powered by moving average prediction</p>
+  </div>
+  <a href="{% url 'food:owner_dashboard' %}" class="btn-outline" style="color:white;border-color:rgba(255,255,255,0.3);">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+
+<div class="analytics-grid">
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
+      <div>
+        <div class="chart-title">Hourly Order Volume</div>
+        <div class="chart-subtitle">Total orders per hour across the last 7 days</div>
+      </div>
+      <span class="total-badge">{{ total_week }} orders this week</span>
+    </div>
+    <canvas id="demandChart" height="220"></canvas>
+
+    <div class="peak-stat">
+      <div class="peak-icon">🔥</div>
+      <div>
+        <div class="peak-label">Peak Hour (last 7 days)</div>
+        <div class="peak-value">{{ peak_hour }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Prediction -->
+  <div>
+    <div class="ai-card">
+      <span class="ai-badge">🤖 AI Prediction</span>
+
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;color:var(--slate);margin-bottom:4px;font-weight:500;">Next Hour Forecast</div>
+        <div class="ai-prediction-hour">{{ prediction.hour }}</div>
+      </div>
+
+      <div class="ai-predicted-count">
+        {{ prediction.predicted }}
+        <span class="ai-unit">orders expected</span>
+      </div>
+
+      <div class="confidence-row">
+        <span style="color:var(--slate);font-size:12px;">Confidence:</span>
+        <span class="conf-badge conf-{{ prediction.confidence }}">{{ prediction.confidence }}</span>
+      </div>
+
+      <div class="advice-box">
+        <strong>📋 Recommendation:</strong><br>
+        {{ prediction.advice }}
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="theory-box">
+      <h3>🧠 How This Works</h3>
+      <p>
+        The AI uses a <strong>7-day moving average</strong> — it looks at the same hour
+        on each of the past 7 days and averages the order counts.
+        A low variance means consistent demand (High confidence).
+        High variance means unpredictable demand (Low confidence).
+        <br><br>
+        Formula: <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:11px;">predicted = Σ(orders_same_hour) / 7</code>
+      </p>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+  const ctx = document.getElementById('demandChart').getContext('2d');
+
+  const labels = {{ chart_labels|safe }};
+  const data   = {{ chart_data|safe }};
+
+  // Find max value for color gradient
+  const maxVal = Math.max(...data, 1);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Orders',
+        data: data,
+        backgroundColor: data.map(v => {
+          const intensity = v / maxVal;
+          if (intensity > 0.8) return '#b8860b';      // peak — dark gold
+          if (intensity > 0.5) return '#d4a827';      // high — gold
+          if (intensity > 0.2) return '#e8c96a';      // medium
+          return '#f2e0a3';                            // low
+        }),
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.raw} orders`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f1f5f9' },
+          ticks: {
+            precision: 0,
+            font: { size: 11 }
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

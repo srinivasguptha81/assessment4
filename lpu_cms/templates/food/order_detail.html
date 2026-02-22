@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.id }} — Tracking{% endblock %}
+
+{% block extra_css %}
+<style>
+  .order-track-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .order-track-header {
+    background: linear-gradient(135deg, var(--ink), #1a2a1a);
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .order-track-header .order-id {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 20px;
+  }
+  .order-track-header p { color: rgba(255,255,255,0.55); font-size: 12.5px; margin: 0; }
+
+  .status-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .status-P { background: #fef3c7; color: #92400e; }
+  .status-C { background: #dbeafe; color: #1e40af; }
+  .status-R { background: #d4f4dd; color: #1a6b35; }
+  .status-X { background: #e2e8f0; color: #475569; }
+  .status-N { background: #fde8e8; color: #b91c1c; }
+
+  /* Progress stepper */
+  .stepper {
+    display: flex;
+    align-items: center;
+    padding: 24px 28px;
+    background: var(--parchment);
+    border-bottom: 1px solid var(--rule);
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    text-align: center;
+  }
+  .step::before {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    width: 100%;
+    height: 3px;
+    background: var(--rule);
+    z-index: 0;
+  }
+  .step:last-child::before { display: none; }
+
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2.5px solid var(--rule);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .step.done .step-circle {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: white;
+  }
+  .step.active .step-circle {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.2);
+  }
+  .step-label {
+    font-size: 10.5px;
+    color: var(--slate);
+    margin-top: 6px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .step.done .step-label, .step.active .step-label { color: var(--ink); }
+
+  .order-body { padding: 22px 24px; }
+  .order-meta-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .order-meta-item {
+    background: var(--parchment);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    flex: 1;
+    min-width: 120px;
+  }
+  .order-meta-item .meta-label { color: var(--slate); font-size: 11px; margin-bottom: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .order-meta-item .meta-val { font-weight: 600; color: var(--ink); }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .items-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate);
+    padding: 8px 0;
+    border-bottom: 2px solid var(--rule);
+  }
+  .items-table td { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .items-table tr:last-child td { border-bottom: none; }
+  .items-table .item-name { font-weight: 500; }
+  .items-table .item-price { text-align: right; font-weight: 700; font-family: 'Playfair Display', serif; color: var(--gold); }
+
+  .order-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid var(--rule);
+    padding-top: 14px;
+    margin-top: 14px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .order-total-row span:last-child {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 18px;
+  }
+
+  /* Auto refresh indicator */
+  .refresh-note {
+    font-size: 11px;
+    color: var(--slate);
+    text-align: center;
+    padding-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+  <a href="{% url 'food:my_orders' %}" class="btn-outline" style="font-size:12px;padding:6px 12px;">
+    <i class="bi bi-arrow-left"></i> My Orders
+  </a>
+</div>
+
+<div class="order-track-card">
+  <!-- Header -->
+  <div class="order-track-header">
+    <div>
+      <div class="order-id">Order #{{ order.id }}</div>
+      <p>{{ order.stall.name }} · {{ order.created_at|date:"d M Y, g:i A" }}</p>
+    </div>
+    <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+  </div>
+
+  <!-- Stepper (only for non-cancelled orders) -->
+  {% if order.status != 'N' %}
+  <div class="stepper">
+    <div class="step {% if status_step >= 1 %}{% if status_step == 1 %}active{% else %}done{% endif %}{% endif %}">
+      <div class="step-circle">{% if status_step > 1 %}✓{% else %}📋{% endif %}</div>
+      <div class="step-label">Placed</div>
+    </div>
+    <div class="step {% if status_step >= 2 %}{% if status_step == 2 %}active{% else %}done{% endif %}{% endif %}">
+      <div class="step-circle">{% if status_step > 2 %}✓{% else %}✅{% endif %}</div>
+      <div class="step-label">Confirmed</div>
+    </div>
+    <div class="step {% if status_step >= 3 %}{% if status_step == 3 %}active{% else %}done{% endif %}{% endif %}">
+      <div class="step-circle">{% if status_step > 3 %}✓{% else %}🍳{% endif %}</div>
+      <div class="step-label">Ready</div>
+    </div>
+    <div class="step {% if status_step >= 4 %}active{% endif %}">
+      <div class="step-circle">🎉</div>
+      <div class="step-label">Collected</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="order-body">
+    <!-- Meta -->
+    <div class="order-meta-row">
+      <div class="order-meta-item">
+        <div class="meta-label">Pick-up Slot</div>
+        <div class="meta-val">{{ order.slot.label }}</div>
+      </div>
+      <div class="order-meta-item">
+        <div class="meta-label">Time</div>
+        <div class="meta-val">{{ order.slot.start_time|time:"g:i A" }}</div>
+      </div>
+      <div class="order-meta-item">
+        <div class="meta-label">Date</div>
+        <div class="meta-val">{{ order.order_date|date:"d M Y" }}</div>
+      </div>
+    </div>
+
+    {% if order.note %}
+    <div style="background:var(--parchment);border-radius:8px;padding:10px 14px;font-size:12.5px;margin-bottom:16px;color:var(--slate);">
+      <span style="font-weight:600;color:var(--ink);">Note:</span> {{ order.note }}
+    </div>
+    {% endif %}
+
+    <!-- Items -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align:center;">Qty</th>
+          <th style="text-align:right;">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="item-name">{{ item.menu_item.name }}</td>
+          <td style="text-align:center;color:var(--slate);">{{ item.quantity }}</td>
+          <td class="item-price">₹{{ item.subtotal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="order-total-row">
+      <span>Total</span>
+      <span>₹{{ order.total }}</span>
+    </div>
+
+    {% if order.status == 'P' or order.status == 'C' %}
+    <div class="refresh-note">
+      <span class="pulse-dot"></span>
+      Page refreshes automatically every 30 seconds
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  {% if order.status == 'P' or order.status == 'C' %}
+  // Auto-refresh every 30s while order is pending/confirmed
+  setTimeout(() => location.reload(), 30000);
+  {% endif %}
+</script>
+{% endblock %}

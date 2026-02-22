@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block title %}Food Stalls — LPU Smart Campus{% endblock %}
+
+{% block extra_css %}
+<style>
+  .food-hero {
+    background: linear-gradient(135deg, var(--ink) 0%, #1a2a1a 100%);
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .food-hero::before {
+    content: '🍽';
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 72px;
+    opacity: 0.15;
+  }
+  .food-hero h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 26px;
+    margin: 0 0 6px 0;
+  }
+  .food-hero p {
+    color: rgba(255,255,255,0.6);
+    font-size: 13.5px;
+    margin: 0;
+  }
+
+  .stalls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  .stall-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .stall-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .stall-photo {
+    height: 160px;
+    background: linear-gradient(135deg, #2d4a2d, #1a2a1a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stall-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  .stall-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .badge-open  { background: #d4f4dd; color: #1a6b35; }
+  .badge-closed { background: #fde8e8; color: #b91c1c; }
+
+  .stall-body {
+    padding: 18px 20px;
+  }
+  .stall-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .stall-location {
+    font-size: 12px;
+    color: var(--slate);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .stall-hours {
+    font-size: 12px;
+    color: var(--slate);
+    background: var(--parchment);
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stall-order-btn {
+    display: block;
+    margin-top: 14px;
+    background: var(--ink);
+    color: var(--gold);
+    text-align: center;
+    padding: 9px 0;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+  }
+  .stall-order-btn:hover { opacity: 0.85; }
+
+  .quicklinks {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .quicklink-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .quicklink-card:hover {
+    border-color: var(--gold);
+    background: #fdf8f0;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .quicklink-card .ql-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .ql-badge {
+    margin-left: auto;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="food-hero">
+  <h1>Campus Food Stalls</h1>
+  <p>Pre-order your meal, skip the queue. Pick up at your break slot.</p>
+</div>
+
+<!-- Quick links -->
+<div class="quicklinks">
+  <a href="{% url 'food:my_orders' %}" class="quicklink-card">
+    <span class="ql-icon">📦</span>
+    My Orders
+  </a>
+  {% if cart_count > 0 %}
+  <div class="quicklink-card" style="border-color:var(--gold);background:#fdf8f0;">
+    <span class="ql-icon">🛒</span>
+    Cart
+    <span class="ql-badge">{{ cart_count }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Stalls grid -->
+{% if stalls %}
+<div class="stalls-grid">
+  {% for stall in stalls %}
+  <a href="{% url 'food:stall_menu' stall.id %}" class="stall-card">
+    <div class="stall-photo">
+      {% if stall.photo %}
+        <img src="{{ stall.photo.url }}" alt="{{ stall.name }}">
+      {% else %}
+        🍽
+      {% endif %}
+      <span class="stall-status-badge {% if stall.is_open %}badge-open{% else %}badge-closed{% endif %}">
+        {% if stall.is_open %}● Open{% else %}● Closed{% endif %}
+      </span>
+    </div>
+    <div class="stall-body">
+      <div class="stall-name">{{ stall.name }}</div>
+      <div class="stall-location">
+        <i class="bi bi-geo-alt"></i> {{ stall.location }}
+      </div>
+      <div class="stall-hours">
+        <i class="bi bi-clock"></i>
+        {{ stall.opens_at|time:"g:i A" }} – {{ stall.closes_at|time:"g:i A" }}
+      </div>
+      {% if stall.is_open %}
+        <span class="stall-order-btn">View Menu & Order →</span>
+      {% else %}
+        <span class="stall-order-btn" style="background:#e2e8f0;color:#94a3b8;cursor:not-allowed;">Currently Closed</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:var(--slate);">
+  <div style="font-size:48px;margin-bottom:12px;">🍽</div>
+  <div style="font-size:16px;font-weight:500;">No stalls available right now</div>
+  <div style="font-size:13px;margin-top:6px;">Check back during campus hours.</div>
+</div>
+{% endif %}
+
+{% endblock %}

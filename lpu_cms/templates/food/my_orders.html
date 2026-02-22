@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}My Orders — LPU Food{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .orders-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .order-row {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .order-row:hover {
+    border-color: var(--gold);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .order-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 70px;
+  }
+  .order-stall { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .order-slot { font-size: 12px; color: var(--slate); margin-top: 2px; }
+
+  .order-items-preview {
+    flex: 1;
+    font-size: 12.5px;
+    color: var(--slate);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .order-date { font-size: 12px; color: var(--slate); min-width: 80px; text-align: right; }
+  .order-total { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--ink); min-width: 64px; text-align: right; }
+
+  .status-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+  .status-P { background: #fef3c7; color: #92400e; }
+  .status-C { background: #dbeafe; color: #1e40af; }
+  .status-R { background: #d4f4dd; color: #1a6b35; }
+  .status-X { background: #e2e8f0; color: #475569; }
+  .status-N { background: #fde8e8; color: #b91c1c; }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--slate);
+  }
+  .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h2 { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--ink); margin-bottom: 8px; }
+  .empty-state p { font-size: 13.5px; margin-bottom: 20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>📦 My Orders</h1>
+  <a href="{% url 'food:stall_list' %}" class="btn-gold">
+    <i class="bi bi-plus-circle"></i> New Order
+  </a>
+</div>
+
+{% if orders %}
+<div class="orders-list">
+  {% for order in orders %}
+  <a href="{% url 'food:order_detail' order.id %}" class="order-row">
+    <div>
+      <div class="order-num">#{{ order.id }}</div>
+    </div>
+    <div style="min-width:160px;">
+      <div class="order-stall">{{ order.stall.name }}</div>
+      <div class="order-slot"><i class="bi bi-clock"></i> {{ order.slot.label }}, {{ order.order_date|date:"d M" }}</div>
+    </div>
+    <div class="order-items-preview">
+      {% for item in order.items.all %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+    <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+    <div class="order-total">₹{{ order.total }}</div>
+    <div class="order-date">{{ order.created_at|date:"d M Y" }}</div>
+    <i class="bi bi-chevron-right" style="color:var(--slate);font-size:12px;"></i>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="icon">🍽</div>
+  <h2>No orders yet</h2>
+  <p>Browse campus food stalls and place your first pre-order.</p>
+  <a href="{% url 'food:stall_list' %}" class="btn-gold">Browse Stalls</a>
+</div>
+{% endif %}
+
+{% endblock %}

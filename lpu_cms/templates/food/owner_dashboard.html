@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% block title %}Stall Dashboard — {{ stall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .owner-header {
+    background: linear-gradient(135deg, var(--ink), #1a2a1a);
+    border-radius: 14px;
+    padding: 22px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .owner-header h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 20px; margin: 0 0 4px 0; }
+  .owner-header p { color: rgba(255,255,255,0.5); font-size: 12.5px; margin: 0; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 900px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+  .stat-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-lbl { font-size: 11px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .slot-section { margin-bottom: 28px; }
+  .slot-header {
+    background: var(--parchment);
+    border: 1px solid var(--rule);
+    border-radius: 10px 10px 0 0;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .slot-orders-count {
+    background: var(--ink);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+
+  .owner-order-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border: 1px solid var(--rule);
+    border-top: none;
+    background: white;
+    font-size: 13px;
+  }
+  .owner-order-row:last-child { border-radius: 0 0 10px 10px; }
+  .owner-order-row:hover { background: #fdf8f0; }
+
+  .order-id-badge {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 48px;
+    font-size: 14px;
+  }
+  .student-name { font-weight: 600; min-width: 160px; }
+  .order-items-text { flex: 1; color: var(--slate); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .order-amount { font-weight: 700; font-family: 'Playfair Display', serif; color: var(--ink); min-width: 60px; text-align: right; }
+
+  .status-select {
+    font-size: 12px;
+    padding: 5px 10px;
+    border: 1.5px solid var(--rule);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    min-width: 130px;
+  }
+
+  .status-indicator {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .si-P { background: #f59e0b; }
+  .si-C { background: #3b82f6; }
+  .si-R { background: #16a34a; }
+  .si-X { background: #94a3b8; }
+  .si-N { background: #ef4444; }
+
+  .analytics-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--ink);
+    color: var(--gold);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .analytics-link:hover { opacity: 0.85; text-decoration: none; color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="owner-header">
+  <div>
+    <h1>{{ stall.name }}</h1>
+    <p>📍 {{ stall.location }} · Today: {{ today|date:"l, d F Y" }}</p>
+  </div>
+  <div style="margin-left:auto;">
+    <a href="{% url 'food:demand_analytics' %}" class="analytics-link">
+      <i class="bi bi-graph-up"></i> AI Demand Analytics
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--ink);">{{ total_orders }}</div>
+    <div class="stat-lbl">Total Orders</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:#f59e0b;">{{ pending }}</div>
+    <div class="stat-lbl">Pending</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:#3b82f6;">{{ confirmed }}</div>
+    <div class="stat-lbl">Confirmed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:#16a34a;">{{ ready }}</div>
+    <div class="stat-lbl">Ready</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--gold);">₹{{ total_revenue }}</div>
+    <div class="stat-lbl">Revenue</div>
+  </div>
+</div>
+
+<!-- Orders grouped by slot -->
+{% if slots_data %}
+  {% for slot, slot_orders in slots_data.items %}
+  <div class="slot-section">
+    <div class="slot-header">
+      <span>🕐 {{ slot.label }} — {{ slot.start_time|time:"g:i A" }} to {{ slot.end_time|time:"g:i A" }}</span>
+      <span class="slot-orders-count">{{ slot_orders|length }} orders</span>
+    </div>
+
+    {% for order in slot_orders %}
+    <div class="owner-order-row" id="order-row-{{ order.id }}">
+      <span class="status-indicator si-{{ order.status }}"></span>
+      <span class="order-id-badge">#{{ order.id }}</span>
+      <span class="student-name">{{ order.student.user.get_full_name }}</span>
+      <span class="order-items-text">
+        {% for item in order.items.all %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        {% if order.note %} · <em>{{ order.note }}</em>{% endif %}
+      </span>
+      <span class="order-amount">₹{{ order.total }}</span>
+      <select class="status-select" onchange="updateStatus({{ order.id }}, this.value, this)">
+        <option value="P" {% if order.status == 'P' %}selected{% endif %}>⏳ Pending</option>
+        <option value="C" {% if order.status == 'C' %}selected{% endif %}>✅ Confirmed</option>
+        <option value="R" {% if order.status == 'R' %}selected{% endif %}>🍳 Ready</option>
+        <option value="X" {% if order.status == 'X' %}selected{% endif %}>✓ Collected</option>
+        <option value="N" {% if order.status == 'N' %}selected{% endif %}>✗ Cancel</option>
+      </select>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+{% else %}
+<div style="text-align:center;padding:60px 20px;color:var(--slate);">
+  <div style="font-size:48px;margin-bottom:12px;">📭</div>
+  <div style="font-size:16px;font-weight:500;">No orders for today</div>
+  <div style="font-size:13px;margin-top:6px;">Orders placed by students will appear here.</div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function getCookie(name) {
+    let v = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+      });
+    }
+    return v;
+  }
+
+  function updateStatus(orderId, newStatus, selectEl) {
+    selectEl.disabled = true;
+    fetch(`/food/api/order/${orderId}/status/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+    .then(r => r.json())
+    .then(data => {
+      selectEl.disabled = false;
+      if (data.success) {
+        // Update indicator dot
+        const row = document.getElementById(`order-row-${orderId}`);
+        const dot = row.querySelector('.status-indicator');
+        dot.className = `status-indicator si-${data.code}`;
+
+        // Flash feedback
+        row.style.background = '#f0fdf4';
+        setTimeout(() => row.style.background = '', 800);
+      }
+    })
+    .catch(() => { selectEl.disabled = false; });
+  }
+
+  // Auto-refresh every 45s
+  setTimeout(() => location.reload(), 45000);
+</script>
+{% endblock %}
