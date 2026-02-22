@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}My Attendance{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
+{% block nav_student %}active{% endblock %}
+
+{% block content %}
+<!-- BANNER -->
+<div class="page-banner fade-up">
+  <div class="banner-tag">● Student Portal</div>
+  <div class="banner-title">{{ student.user.get_full_name }}</div>
+  <div class="banner-sub">{{ student.department }} · Reg: {{ student.registration_no }} · Semester {{ student.semester }}</div>
+</div>
+
+<!-- WARNING ALERT -->
+{% for cd in course_data %}
+  {% if cd.warning %}
+  <div class="lpu-alert warning fade-up" style="margin-bottom:10px;">
+    <i class="bi bi-exclamation-triangle"></i>
+    Your attendance in <strong>{{ cd.course.code }}</strong> is <strong>{{ cd.percentage }}%</strong> — below the 75% requirement. Risk of detention!
+  </div>
+  {% endif %}
+{% endfor %}
+
+<!-- COURSE ATTENDANCE CARDS -->
+<div class="row g-3 mb-4">
+  {% for cd in course_data %}
+  <div class="col-md-6 fade-up-{{ forloop.counter }}">
+    <a href="{% url 'attendance:student_course_detail' cd.course.id %}" style="text-decoration:none;">
+      <div class="lpu-card" style="transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.07)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="padding:18px 22px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:600;">{{ cd.course.name|truncatechars:36 }}</div>
+              <div class="mono" style="font-size:11px;color:var(--slate);margin-top:2px;">{{ cd.course.code }}</div>
+            </div>
+            <span class="status-badge {% if cd.warning %}badge-warning{% else %}badge-safe{% endif %}">
+              {{ cd.percentage }}%
+            </span>
+          </div>
+
+          <div class="att-bar-bg">
+            <div class="att-bar-fill" style="width:{{ cd.percentage }}%;background:{% if cd.warning %}var(--rust){% else %}var(--forest){% endif %};"></div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;margin-top:8px;">
+            <span style="font-size:11px;color:var(--slate);">{{ cd.attended }} / {{ cd.total }} classes attended</span>
+            <span style="font-size:11px;color:var(--gold);">View details →</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="lpu-card" style="padding:40px;text-align:center;color:var(--slate);">
+      Not enrolled in any courses yet.
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- RECENT RECORDS -->
+<div class="lpu-card fade-up-3">
+  <div class="lpu-card-header">
+    <div class="lpu-card-title">Recent Attendance</div>
+    <span style="font-size:12px;color:var(--slate);">Last 15 records</span>
+  </div>
+  <table class="lpu-table">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in recent_records %}
+      <tr>
+        <td>
+          <div style="font-weight:500;">{{ record.session.course.code }}</div>
+          <div style="font-size:11px;color:var(--slate);">{{ record.session.course.name|truncatechars:28 }}</div>
+        </td>
+        <td class="mono" style="font-size:12px;">{{ record.session.date }}</td>
+        <td class="mono" style="font-size:12px;">{{ record.session.start_time|time:"H:i" }}</td>
+        <td>
+          {% if record.status == 'P' %}
+            <span class="status-badge badge-present">● Present</span>
+          {% elif record.status == 'A' %}
+            <span class="status-badge badge-absent">● Absent</span>
+          {% elif record.status == 'L' %}
+            <span class="status-badge badge-late">● Late</span>
+          {% else %}
+            <span class="status-badge badge-excused">● Excused</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:28px;color:var(--slate);">No attendance records yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

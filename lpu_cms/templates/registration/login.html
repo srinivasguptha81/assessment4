@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — LPU Smart CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f0e0c; --cream: #f7f4ee; --gold: #c9a84c;
+  --rule: rgba(15,14,12,0.1); --slate: #4a5568;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  min-height: 100vh; display: flex;
+  background: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.login-left {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--ink); padding: 60px;
+  position: relative; overflow: hidden;
+}
+
+.login-left::before {
+  content: ''; position: absolute;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+  top: -100px; left: -100px;
+}
+
+.login-left::after {
+  content: ''; position: absolute;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(179,74,47,0.1) 0%, transparent 70%);
+  bottom: -50px; right: -50px;
+}
+
+.left-content { position: relative; z-index: 1; max-width: 400px; }
+
+.crest {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 700; color: var(--ink);
+  margin-bottom: 28px;
+}
+
+.left-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px; font-weight: 700; color: var(--cream);
+  line-height: 1.15; margin-bottom: 14px;
+}
+
+.left-sub { font-size: 14px; color: rgba(247,244,238,0.4); line-height: 1.7; }
+
+.modules { margin-top: 36px; display: flex; flex-direction: column; gap: 10px; }
+
+.module-chip {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(247,244,238,0.55); font-size: 13px;
+}
+
+.module-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
+
+/* RIGHT PANEL */
+.login-right {
+  width: 460px; flex-shrink: 0;
+  background: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px 48px;
+}
+
+.login-box { width: 100%; }
+
+.login-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 600; color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.login-sub { font-size: 13px; color: var(--slate); margin-bottom: 32px; }
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+  display: block;
+  font-size: 11.5px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--slate); margin-bottom: 7px;
+}
+
+.form-group input {
+  width: 100%; padding: 11px 14px;
+  border: 1px solid var(--rule); border-radius: 9px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  background: white; transition: border-color 0.18s; outline: none;
+  color: var(--ink);
+}
+
+.form-group input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+}
+
+.login-btn {
+  width: 100%; padding: 12px;
+  background: var(--ink); color: var(--cream);
+  border: none; border-radius: 9px;
+  font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; transition: background 0.18s;
+  margin-top: 4px;
+}
+
+.login-btn:hover { background: #2a2926; }
+
+.error-msg {
+  background: #f5d4d4; color: #7a1f1f;
+  border: 1px solid #e8b0b0; border-radius: 8px;
+  padding: 10px 14px; font-size: 13px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-box { animation: fadeUp 0.5s ease; }
+</style>
+</head>
+<body>
+
+<div class="login-left">
+  <div class="left-content">
+    <div class="crest">L</div>
+    <div class="left-title">Lovely Professional<br>University</div>
+    <div class="left-sub">Smart AI-Enabled Campus Management System. Attendance, resources, food ordering — all in one place.</div>
+    <div class="modules">
+      <div class="module-chip"><div class="dot"></div> Smart Attendance Management</div>
+      <div class="module-chip"><div class="dot"></div> Food Stall Pre-Ordering</div>
+      <div class="module-chip"><div class="dot"></div> Campus Resource Estimation</div>
+      <div class="module-chip"><div class="dot"></div> Make-Up Class & Remedial Codes</div>
+    </div>
+  </div>
+</div>
+
+<div class="login-right">
+  <div class="login-box">
+    <div class="login-heading">Welcome back</div>
+    <div class="login-sub">Sign in to your LPU account</div>
+
+    {% if form.errors %}
+    <div class="error-msg">
+      <i class="bi bi-exclamation-circle"></i>
+      Invalid username or password. Please try again.
+    </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" placeholder="Enter your username" autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="login-btn">Sign In →</button>
+    </form>
+
+    <div style="margin-top:24px;font-size:12px;color:var(--slate);text-align:center;">
+      Forgot your password? Contact the system administrator.
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

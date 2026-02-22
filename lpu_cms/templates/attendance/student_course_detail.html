@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ course.code }} — Attendance{% endblock %}
+{% block page_title %}{{ course.code }} Attendance{% endblock %}
+{% block nav_student %}active{% endblock %}
+
+{% block content %}
+<div class="page-banner fade-up">
+  <div class="banner-tag">● {{ course.code }}</div>
+  <div class="banner-title">{{ course.name }}</div>
+  <div class="banner-sub">Faculty: {{ course.faculty.user.get_full_name }} · {{ course.department }}</div>
+</div>
+
+{% if summary %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3 fade-up-1">
+    <div class="stat-card {% if summary.is_below_threshold %}rust{% else %}green{% endif %}">
+      <span class="stat-icon">📊</span>
+      <span class="stat-value">{{ summary.percentage }}%</span>
+      <div class="stat-label">Attendance</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-2">
+    <div class="stat-card gold">
+      <span class="stat-icon">✅</span>
+      <span class="stat-value">{{ summary.classes_attended }}</span>
+      <div class="stat-label">Attended</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-3">
+    <div class="stat-card blue">
+      <span class="stat-icon">📋</span>
+      <span class="stat-value">{{ summary.total_classes }}</span>
+      <div class="stat-label">Total Classes</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-4">
+    <div class="stat-card {% if summary.is_below_threshold %}rust{% else %}green{% endif %}">
+      <span class="stat-icon">{% if summary.is_below_threshold %}⚠️{% else %}✨{% endif %}</span>
+      <span class="stat-value" style="font-size:20px;margin-top:6px;">
+        {% if summary.is_below_threshold %}At Risk{% else %}Safe{% endif %}
+      </span>
+      <div class="stat-label">Status</div>
+    </div>
+  </div>
+</div>
+
+{% if summary.is_below_threshold %}
+<div class="lpu-alert warning fade-up">
+  <i class="bi bi-exclamation-triangle"></i>
+  You need to attend at least <strong>{{ summary.total_classes|add:"-0" }}</strong> more classes to reach 75%. Contact your faculty if you have genuine reasons for absence.
+</div>
+{% endif %}
+{% endif %}
+
+<div class="lpu-card fade-up-2">
+  <div class="lpu-card-header">
+    <div class="lpu-card-title">Session-wise Record</div>
+  </div>
+  <table class="lpu-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in records %}
+      <tr>
+        <td class="mono" style="font-size:12px;">{{ record.session.date }}</td>
+        <td class="mono" style="font-size:12px;">{{ record.session.start_time|time:"H:i" }}</td>
+        <td>
+          {% if record.status == 'P' %}
+            <span class="status-badge badge-present">● Present</span>
+          {% elif record.status == 'A' %}
+            <span class="status-badge badge-absent">● Absent</span>
+          {% elif record.status == 'L' %}
+            <span class="status-badge badge-late">● Late</span>
+          {% else %}
+            <span class="status-badge badge-excused">● Excused</span>
+          {% endif %}
+        </td>
+        <td style="font-size:12px;color:var(--slate);">
+          {% if record.session.is_makeup %}Make-up{% else %}Regular{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" style="text-align:center;padding:28px;color:var(--slate);">No records found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="mt-3">
+  <a href="{% url 'attendance:student_dashboard' %}" class="btn-outline">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+  </a>
+</div>
+{% endblock %}

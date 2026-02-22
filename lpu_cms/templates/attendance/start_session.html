@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Start Session{% endblock %}
+{% block page_title %}Start Attendance Session{% endblock %}
+{% block nav_session %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.method-card {
+  flex: 1;
+  background: white;
+  border: 2px solid var(--rule);
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.method-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 16px rgba(201,168,76,0.12);
+}
+
+.method-card.selected-manual {
+  border-color: var(--ink);
+  background: rgba(15,14,12,0.03);
+}
+
+.method-card.selected-ai {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.05);
+}
+
+.method-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.method-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--ink);
+}
+
+.method-desc {
+  font-size: 12px;
+  color: var(--slate);
+  line-height: 1.6;
+}
+
+.method-check {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--rule);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  transition: all 0.2s;
+}
+
+.selected-manual .method-check {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+
+.selected-ai .method-check {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 fade-up">
+
+    <!-- BANNER -->
+    <div class="page-banner" style="margin-bottom:28px;">
+      <div class="banner-tag">● New Session</div>
+      <div class="banner-title">Start Attendance Session</div>
+      <div class="banner-sub">Create a session then choose how to mark attendance</div>
+    </div>
+
+    <div class="lpu-card">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">Session Details</div>
+      </div>
+      <div class="lpu-card-body">
+        <form method="post" class="lpu-form" id="sessionForm">
+          {% csrf_token %}
+
+          <!-- COURSE -->
+          <div class="mb-4">
+            <label for="id_course">Course</label>
+            {{ form.course }}
+            {% if form.course.errors %}
+              <div style="color:var(--rust);font-size:12px;margin-top:4px;">{{ form.course.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- DATE -->
+          <div class="mb-4">
+            <label for="id_date">Date</label>
+            {{ form.date }}
+            {% if form.date.errors %}
+              <div style="color:var(--rust);font-size:12px;margin-top:4px;">{{ form.date.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- TIME -->
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <label for="id_start_time">Start Time</label>
+              {{ form.start_time }}
+            </div>
+            <div class="col-6">
+              <label for="id_end_time">End Time</label>
+              {{ form.end_time }}
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <!-- METHOD SELECTION -->
+          <div style="margin-bottom:20px;">
+            <label style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate);display:block;margin-bottom:12px;">
+              Choose Marking Method
+            </label>
+
+            <div style="display:flex;gap:12px;">
+
+              <!-- MANUAL CARD -->
+              <div class="method-card selected-manual" id="card-manual" onclick="selectMethod('manual')">
+                <div class="method-check" id="check-manual">✓</div>
+                <span class="method-icon">✏️</span>
+                <div class="method-title">Manual Marking</div>
+                <div class="method-desc">
+                  Select Present / Absent / Late / Excused for each student individually. Full control over every record.
+                </div>
+              </div>
+
+              <!-- AI CARD -->
+              <div class="method-card" id="card-ai" onclick="selectMethod('ai')">
+                <div class="method-check" id="check-ai"></div>
+                <span class="method-icon">🤖</span>
+                <div class="method-title">AI Face Recognition</div>
+                <div class="method-desc">
+                  Upload one class photo. AI detects student faces and marks attendance automatically.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Hidden field carries the choice to the view -->
+          <input type="hidden" name="mark_method" id="mark_method" value="manual">
+
+          <hr class="divider">
+
+          <!-- SUBMIT -->
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button type="submit" class="btn-gold" id="submitBtn" style="font-size:14px;padding:10px 24px;">
+              <i class="bi bi-play-circle" id="submitIcon"></i>
+              <span id="submitText">Create &amp; Mark Manually</span>
+            </button>
+            <a href="{% url 'attendance:faculty_dashboard' %}" class="btn-outline">
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Add Bootstrap classes to Django form widgets
+  document.querySelectorAll('.lpu-form select').forEach(el => el.classList.add('form-select'));
+  document.querySelectorAll('.lpu-form input[type="date"], .lpu-form input[type="time"]').forEach(el => el.classList.add('form-control'));
+
+  // Method selection logic
+  function selectMethod(method) {
+    const cardManual = document.getElementById('card-manual');
+    const cardAi     = document.getElementById('card-ai');
+    const checkManual = document.getElementById('check-manual');
+    const checkAi     = document.getElementById('check-ai');
+    const submitBtn  = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitIcon = document.getElementById('submitIcon');
+    const input      = document.getElementById('mark_method');
+
+    if (method === 'manual') {
+      // Style manual as selected
+      cardManual.className = 'method-card selected-manual';
+      cardAi.className     = 'method-card';
+      checkManual.textContent = '✓';
+      checkAi.textContent     = '';
+
+      // Update button
+      submitBtn.className   = 'btn-ink';
+      submitBtn.style.cssText = 'font-size:14px;padding:10px 24px;';
+      submitIcon.className  = 'bi bi-pencil-square';
+      submitText.textContent = 'Create & Mark Manually';
+      input.value           = 'manual';
+
+    } else {
+      // Style AI as selected
+      cardAi.className     = 'method-card selected-ai';
+      cardManual.className = 'method-card';
+      checkAi.textContent     = '✓';
+      checkManual.textContent = '';
+
+      // Update button
+      submitBtn.className   = 'btn-gold';
+      submitBtn.style.cssText = 'font-size:14px;padding:10px 24px;';
+      submitIcon.className  = 'bi bi-robot';
+      submitText.textContent = 'Create & Use AI';
+      input.value           = 'ai';
+    }
+  }
+</script>
+{% endblock %}

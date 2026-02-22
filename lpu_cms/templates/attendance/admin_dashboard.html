@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block nav_admin %}active{% endblock %}
+
+{% block content %}
+<!-- BANNER -->
+<div class="page-banner fade-up">
+  <div class="banner-tag">● Spring Semester 2026</div>
+  <div class="banner-title">Welcome back, {{ request.user.get_full_name }}</div>
+  <div class="banner-sub">LPU Smart Campus Management System — Attendance Module</div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 fade-up-1">
+    <div class="stat-card gold">
+      <span class="stat-icon">🎓</span>
+      <span class="stat-value">{{ total_students }}</span>
+      <div class="stat-label">Total Students</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-2">
+    <div class="stat-card rust">
+      <span class="stat-icon">👤</span>
+      <span class="stat-value">{{ total_faculty }}</span>
+      <div class="stat-label">Faculty Members</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-3">
+    <div class="stat-card green">
+      <span class="stat-icon">📚</span>
+      <span class="stat-value">{{ total_courses }}</span>
+      <div class="stat-label">Active Courses</div>
+    </div>
+  </div>
+  <div class="col-md-3 fade-up-4">
+    <div class="stat-card blue">
+      <span class="stat-icon">📋</span>
+      <span class="stat-value">{{ total_sessions }}</span>
+      <div class="stat-label">Total Sessions</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- LOW ATTENDANCE ALERTS -->
+  <div class="col-md-5 fade-up-2">
+    <div class="lpu-card h-100">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">⚠️ Below 75% Attendance</div>
+        <span class="status-badge badge-warning">{{ low_attendance|length }} students</span>
+      </div>
+      <div style="overflow-y:auto; max-height:400px;">
+        <table class="lpu-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Attendance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in low_attendance %}
+            <tr>
+              <td>
+                <div style="font-weight:500;font-size:13px;">{{ s.student.user.get_full_name }}</div>
+                <div class="mono" style="font-size:11px;color:var(--slate);">{{ s.student.registration_no }}</div>
+              </td>
+              <td style="font-size:12px;color:var(--slate);">{{ s.course.code }}</td>
+              <td>
+                <div class="att-bar-bg" style="margin-bottom:4px;">
+                  <div class="att-bar-fill" style="width:{{ s.percentage }}%;background:var(--rust);"></div>
+                </div>
+                <span class="mono" style="font-size:11px;color:var(--rust);font-weight:500;">{{ s.percentage }}%</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" style="text-align:center;color:var(--slate);padding:24px;font-size:13px;">
+                ✅ All students above 75%
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT SESSIONS -->
+  <div class="col-md-7 fade-up-3">
+    <div class="lpu-card h-100">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">Recent Sessions</div>
+        <span style="font-size:12px;color:var(--slate);">Last 10</span>
+      </div>
+      <div style="overflow-y:auto; max-height:400px;">
+        <table class="lpu-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Faculty</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for session in recent_sessions %}
+            <tr>
+              <td>
+                <div style="font-weight:500;">{{ session.course.code }}</div>
+                <div style="font-size:11px;color:var(--slate);">{{ session.course.name|truncatechars:28 }}</div>
+              </td>
+              <td style="font-size:12px;">{{ session.created_by.user.get_full_name|default:"—" }}</td>
+              <td class="mono" style="font-size:12px;">{{ session.date }}</td>
+              <td class="mono" style="font-size:12px;">{{ session.start_time|time:"H:i" }}</td>
+              <td>
+                <a href="{% url 'attendance:session_detail' session.id %}" class="btn-outline" style="padding:4px 10px;font-size:11px;">View</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" style="text-align:center;color:var(--slate);padding:24px;font-size:13px;">No sessions yet</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

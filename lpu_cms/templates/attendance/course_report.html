@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ course.code }} Report{% endblock %}
+{% block page_title %}Attendance Report{% endblock %}
+
+{% block extra_css %}
+<style>
+.matrix-cell {
+  width: 34px; height: 34px;
+  border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+.matrix-cell.P { background: #d4e8c4; color: #2d5016; }
+.matrix-cell.A { background: #f5d4d4; color: #7a1f1f; }
+.matrix-cell.L { background: #e8d5a3; color: #7a5c00; }
+.matrix-cell.E { background: #d4ddf5; color: #2d3f80; }
+.matrix-cell.dash { background: var(--parchment); color: var(--slate); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-banner fade-up">
+  <div class="banner-tag">📊 Report</div>
+  <div class="banner-title">{{ course.name }}</div>
+  <div class="banner-sub">{{ course.code }} · {{ sessions.count }} sessions · {{ matrix|length }} students</div>
+</div>
+
+<div class="lpu-card fade-up-1" style="overflow-x:auto;">
+  <div class="lpu-card-header">
+    <div class="lpu-card-title">Attendance Matrix</div>
+    <div style="display:flex;gap:8px;font-size:11px;">
+      <span class="matrix-cell P">P</span> Present &nbsp;
+      <span class="matrix-cell A">A</span> Absent &nbsp;
+      <span class="matrix-cell L">L</span> Late &nbsp;
+      <span class="matrix-cell E">E</span> Excused
+    </div>
+  </div>
+  <div style="overflow-x:auto;">
+    <table class="lpu-table" style="min-width:700px;">
+      <thead>
+        <tr>
+          <th style="min-width:160px;">Student</th>
+          {% for session in sessions %}
+          <th style="text-align:center;min-width:38px;">
+            <div>{{ session.date|date:"d/m" }}</div>
+          </th>
+          {% endfor %}
+          <th>Attendance %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in matrix %}
+        <tr>
+          <td>
+            <div style="font-weight:500;font-size:13px;">{{ row.student.user.get_full_name }}</div>
+            <div class="mono" style="font-size:10.5px;color:var(--slate);">{{ row.student.registration_no }}</div>
+          </td>
+          {% for status in row.records %}
+          <td style="text-align:center;padding:8px 4px;">
+            {% if status == "—" %}
+              <span class="matrix-cell dash">—</span>
+            {% else %}
+              <span class="matrix-cell {{ status }}">{{ status }}</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td>
+            {% if row.summary %}
+            <div class="att-bar-bg" style="margin-bottom:4px;">
+              <div class="att-bar-fill" style="width:{{ row.summary.percentage }}%;background:{% if row.summary.is_below_threshold %}var(--rust){% else %}var(--forest){% endif %};"></div>
+            </div>
+            <span class="mono" style="font-size:11px;{% if row.summary.is_below_threshold %}color:var(--rust);{% else %}color:var(--forest);{% endif %}font-weight:600;">
+              {{ row.summary.percentage }}%
+            </span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="20" style="text-align:center;padding:28px;color:var(--slate);">No data.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="{% url 'attendance:faculty_dashboard' %}" class="btn-outline">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</div>
+{% endblock %}

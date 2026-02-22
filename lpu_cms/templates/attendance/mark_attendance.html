@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+{% block page_title %}Mark Attendance{% endblock %}
+{% block nav_session %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.student-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--rule);
+  transition: background 0.15s;
+}
+
+.student-row:last-child { border-bottom: none; }
+.student-row:hover { background: rgba(247,244,238,0.6); }
+
+.s-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  flex-shrink: 0; text-transform: uppercase;
+}
+
+.s-info { flex: 1; min-width: 0; }
+.s-name { font-size: 13.5px; font-weight: 500; }
+.s-reg  { font-size: 11px; color: var(--slate); font-family: 'DM Mono', monospace; }
+
+/* Radio group */
+.radio-group { display: flex; gap: 6px; }
+
+.radio-btn {
+  position: relative;
+}
+
+.radio-btn input[type="radio"] {
+  position: absolute; opacity: 0; width: 0; height: 0;
+}
+
+.radio-btn label {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 32px; border-radius: 7px;
+  border: 1.5px solid var(--rule);
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 !important;
+}
+
+.radio-btn input:checked + label { border-width: 2px; }
+
+/* P = Present */
+.radio-btn.p label { color: #2d5016; }
+.radio-btn.p input:checked + label { background: #d4e8c4; border-color: #2d5016; }
+.radio-btn.p label:hover { background: #e8f5da; }
+
+/* A = Absent */
+.radio-btn.a label { color: #7a1f1f; }
+.radio-btn.a input:checked + label { background: #f5d4d4; border-color: #7a1f1f; }
+.radio-btn.a label:hover { background: #fce8e8; }
+
+/* L = Late */
+.radio-btn.l label { color: #7a5c00; }
+.radio-btn.l input:checked + label { background: #e8d5a3; border-color: #7a5c00; }
+.radio-btn.l label:hover { background: #f5e8c0; }
+
+/* E = Excused */
+.radio-btn.e label { color: #2d3f80; }
+.radio-btn.e input:checked + label { background: #d4ddf5; border-color: #2d3f80; }
+.radio-btn.e label:hover { background: #e4eafe; }
+
+/* Floating toolbar */
+.mark-toolbar {
+  position: sticky; top: 68px; z-index: 50;
+  background: rgba(247,244,238,0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.toolbar-stat {
+  text-align: center;
+  padding: 0 14px;
+  border-right: 1px solid var(--rule);
+}
+.toolbar-stat:last-of-type { border-right: none; }
+
+.t-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--ink); display: block; line-height: 1; }
+.t-lbl { font-size: 10px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+.bulk-btns { display: flex; gap: 8px; margin-left: 10px; }
+
+.bulk-btn {
+  font-size: 11px; font-weight: 600;
+  padding: 6px 12px; border-radius: 7px;
+  border: 1.5px solid; cursor: pointer;
+  transition: all 0.15s; text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Absentee panel */
+.absentee-panel {
+  background: #fff5f5;
+  border: 1px solid #e8b0b0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  display: none;
+}
+
+.absentee-panel.visible { display: block; }
+
+.absentee-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #f5d4d4; color: #7a1f1f;
+  font-size: 11.5px; padding: 4px 10px;
+  border-radius: 20px; margin: 3px; font-weight: 500;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- BANNER -->
+<div class="page-banner fade-up">
+  <div class="banner-tag">📋 {{ session.course.code }}</div>
+  <div class="banner-title">{{ session.course.name }}</div>
+  <div class="banner-sub">{{ session.date }} · {{ session.start_time|time:"H:i" }} – {{ session.end_time|time:"H:i" }} · {{ student_count }} students enrolled</div>
+</div>
+
+{% if already_marked %}
+<div class="lpu-alert warning fade-up">
+  <i class="bi bi-exclamation-triangle"></i>
+  This session has already been marked. Submitting again will overwrite existing records.
+</div>
+{% endif %}
+
+<form method="post" id="attendanceForm">
+{% csrf_token %}
+
+<!-- STICKY TOOLBAR -->
+<div class="mark-toolbar fade-up-1">
+  <div class="toolbar-stat">
+    <span class="t-val" id="count-total">{{ student_count }}</span>
+    <div class="t-lbl">Total</div>
+  </div>
+  <div class="toolbar-stat">
+    <span class="t-val" id="count-present" style="color:var(--forest);">0</span>
+    <div class="t-lbl">Present</div>
+  </div>
+  <div class="toolbar-stat">
+    <span class="t-val" id="count-absent" style="color:var(--rust);">0</span>
+    <div class="t-lbl">Absent</div>
+  </div>
+  <div class="toolbar-stat">
+    <span class="t-val" id="count-late" style="color:#c9a84c;">0</span>
+    <div class="t-lbl">Late</div>
+  </div>
+
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+    <div class="bulk-btns">
+      <button type="button" class="bulk-btn" onclick="markAll('P')" style="color:#2d5016;border-color:#2d5016;">✓ All Present</button>
+      <button type="button" class="bulk-btn" onclick="markAll('A')" style="color:#7a1f1f;border-color:#7a1f1f;">✗ All Absent</button>
+    </div>
+    <button type="button" onclick="checkAbsentees()" class="btn-outline" style="font-size:12px;">
+      <i class="bi bi-search"></i> Preview Absentees
+    </button>
+  </div>
+</div>
+
+<!-- STUDENT LIST -->
+<div class="lpu-card fade-up-2">
+  <div class="lpu-card-header">
+    <div class="lpu-card-title">Students — {{ session.course.code }}</div>
+    <span style="font-size:12px;color:var(--slate);">Mark each student below</span>
+  </div>
+
+  {% for student in students %}
+  {% with field=form|dictsort:"field" %}
+  <div class="student-row" id="row-{{ student.id }}">
+    <div class="s-avatar">{{ student.user.first_name|first }}{{ student.user.last_name|first }}</div>
+    <div class="s-info">
+      <div class="s-name">{{ student.user.get_full_name }}</div>
+      <div class="s-reg">{{ student.registration_no }} · Sem {{ student.semester }}</div>
+    </div>
+
+    <div class="radio-group" data-student="{{ student.id }}">
+      <div class="radio-btn p">
+        <input type="radio" name="student_{{ student.id }}" id="p_{{ student.id }}" value="P" checked>
+        <label for="p_{{ student.id }}">P</label>
+      </div>
+      <div class="radio-btn a">
+        <input type="radio" name="student_{{ student.id }}" id="a_{{ student.id }}" value="A">
+        <label for="a_{{ student.id }}">A</label>
+      </div>
+      <div class="radio-btn l">
+        <input type="radio" name="student_{{ student.id }}" id="l_{{ student.id }}" value="L">
+        <label for="l_{{ student.id }}">L</label>
+      </div>
+      <div class="radio-btn e">
+        <input type="radio" name="student_{{ student.id }}" id="e_{{ student.id }}" value="E">
+        <label for="e_{{ student.id }}">E</label>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div style="padding:40px;text-align:center;color:var(--slate);">No students enrolled in this course yet.</div>
+  {% endfor %}
+</div>
+
+<!-- ABSENTEE PREVIEW -->
+<div class="absentee-panel" id="absenteePanel">
+  <div style="font-size:13px;font-weight:500;margin-bottom:10px;color:#7a1f1f;">
+    <i class="bi bi-exclamation-circle"></i> Students marked Absent — notifications will be sent
+  </div>
+  <div id="absenteeList"></div>
+</div>
+
+<!-- SUBMIT -->
+<div class="mt-4 fade-up-4" style="display:flex;gap:12px;align-items:center;">
+  <button type="submit" class="btn-gold" style="font-size:14px;padding:11px 28px;">
+    <i class="bi bi-check-circle"></i> Save Attendance &amp; Notify Absentees
+  </button>
+  <a href="{% url 'attendance:faculty_dashboard' %}" class="btn-outline">Cancel</a>
+</div>
+
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Live counter ──
+function updateCounts() {
+  let p = 0, a = 0, l = 0;
+  document.querySelectorAll('.radio-group').forEach(group => {
+    const checked = group.querySelector('input:checked');
+    if (checked) {
+      if (checked.value === 'P') p++;
+      else if (checked.value === 'A') a++;
+      else if (checked.value === 'L') l++;
+    }
+  });
+  document.getElementById('count-present').textContent = p;
+  document.getElementById('count-absent').textContent  = a;
+  document.getElementById('count-late').textContent    = l;
+}
+
+document.querySelectorAll('input[type="radio"]').forEach(r => {
+  r.addEventListener('change', updateCounts);
+});
+
+updateCounts();
+
+// ── Mark all ──
+function markAll(status) {
+  document.querySelectorAll('.radio-group').forEach(group => {
+    const target = group.querySelector(`input[value="${status}"]`);
+    if (target) target.checked = true;
+  });
+  updateCounts();
+}
+
+// ── Preview absentees ──
+function checkAbsentees() {
+  const panel = document.getElementById('absenteePanel');
+  const list  = document.getElementById('absenteeList');
+  const absent = [];
+
+  document.querySelectorAll('.radio-group').forEach(group => {
+    const checked = group.querySelector('input:checked');
+    if (checked && checked.value === 'A') {
+      const row  = group.closest('.student-row');
+      const name = row.querySelector('.s-name').textContent.trim();
+      const reg  = row.querySelector('.s-reg').textContent.trim();
+      absent.push({ name, reg });
+    }
+  });
+
+  if (absent.length === 0) {
+    list.innerHTML = '<span style="font-size:13px;color:var(--forest);">✅ No absentees marked.</span>';
+  } else {
+    list.innerHTML = absent.map(s =>
+      `<span class="absentee-chip">
+        <i class="bi bi-person-x"></i> ${s.name}
+        <span class="mono" style="font-size:10px;opacity:0.7;">${s.reg.split('·')[0].trim()}</span>
+      </span>`
+    ).join('');
+  }
+
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Highlight row on absent selection ──
+document.querySelectorAll('.radio-btn.a input').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const row = this.closest('.student-row');
+    if (this.checked) {
+      row.style.background = 'rgba(179,74,47,0.05)';
+    }
+  });
+});
+
+document.querySelectorAll('.radio-btn.p input, .radio-btn.l input, .radio-btn.e input').forEach(radio => {
+  radio.addEventListener('change', function() {
+    this.closest('.student-row').style.background = '';
+  });
+});
+</script>
+{% endblock %}

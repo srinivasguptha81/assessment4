@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}AI Attendance{% endblock %}
+{% block page_title %}AI Face Recognition{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-zone {
+  border: 2px dashed var(--rule);
+  border-radius: 16px;
+  padding: 56px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  position: relative;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.04);
+}
+
+.upload-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+
+.upload-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.upload-sub { font-size: 13px; color: var(--slate); }
+
+#fileInput { display: none; }
+
+.preview-img {
+  max-width: 100%; border-radius: 12px;
+  margin-top: 20px; display: none;
+  border: 1px solid var(--rule);
+}
+
+.how-it-works {
+  background: var(--parchment);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.step-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.step-item:last-child { margin-bottom: 0; }
+
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ink); color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+}
+
+.step-text { font-size: 13px; line-height: 1.6; }
+.step-text strong { color: var(--ink); font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-banner fade-up">
+  <div class="banner-tag">🤖 AI Feature</div>
+  <div class="banner-title">Face Recognition Attendance</div>
+  <div class="banner-sub">{{ session.course.code }} · {{ session.date }} · {{ session.start_time|time:"H:i" }}</div>
+</div>
+
+<div class="row g-4">
+
+  <!-- UPLOAD PANEL -->
+  <div class="col-md-7 fade-up-1">
+    <div class="lpu-card">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">Upload Class Photo</div>
+        <span class="status-badge badge-excused"><i class="bi bi-robot"></i> AI Powered</span>
+      </div>
+      <div class="lpu-card-body">
+        <form method="post" enctype="multipart/form-data" id="aiForm">
+          {% csrf_token %}
+
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <span class="upload-icon">📸</span>
+            <div class="upload-title">Drop class photo here</div>
+            <div class="upload-sub">Click to browse · JPG, PNG supported · Max 10MB</div>
+            <input type="file" name="image" id="fileInput" accept="image/*">
+          </div>
+
+          <img id="previewImg" class="preview-img" src="#" alt="Preview">
+
+          <div id="fileInfo" style="display:none;margin-top:12px;padding:10px 14px;background:var(--parchment);border-radius:8px;font-size:12.5px;color:var(--slate);">
+            <i class="bi bi-image"></i> <span id="fileName"></span>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:12px;">
+            <button type="submit" class="btn-gold" id="submitBtn" disabled>
+              <i class="bi bi-robot"></i> Run AI Recognition
+            </button>
+            <a href="{% url 'attendance:mark_attendance' session.id %}" class="btn-outline">
+              Manual Marking Instead
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="col-md-5 fade-up-2">
+    <div class="lpu-card h-100">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">How AI Recognition Works</div>
+      </div>
+      <div class="lpu-card-body">
+        <div class="how-it-works">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong>Upload a class photo.</strong> The image should clearly show students' faces.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong>Face detection.</strong> AI locates all faces in the photo using HOG (Histogram of Oriented Gradients).
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong>Face encoding.</strong> Each face is converted to a 128-dimension vector (embedding) using a deep neural network.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <strong>Matching.</strong> Each detected face is compared to stored student encodings. Euclidean distance &lt; 0.6 = match.
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">5</div>
+            <div class="step-text">
+              <strong>Auto-mark + Notify.</strong> Matched students → Present. Unmatched → Absent with notification.
+            </div>
+          </div>
+        </div>
+
+        <div class="lpu-alert info" style="margin-top:18px;margin-bottom:0;">
+          <i class="bi bi-info-circle"></i>
+          Students must have uploaded a clear profile photo for AI to recognize them.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ENROLLED STUDENTS CHECK -->
+<div class="lpu-card mt-4 fade-up-3">
+  <div class="lpu-card-header">
+    <div class="lpu-card-title">Enrolled Students — Photo Status</div>
+  </div>
+  <table class="lpu-table">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Reg. No.</th>
+        <th>Photo Uploaded</th>
+        <th>AI Ready</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for student in session.course.students.all %}
+      <tr>
+        <td style="font-weight:500;">{{ student.user.get_full_name }}</td>
+        <td class="mono" style="font-size:12px;">{{ student.registration_no }}</td>
+        <td>
+          {% if student.photo %}
+            <span class="status-badge badge-present"><i class="bi bi-check"></i> Yes</span>
+          {% else %}
+            <span class="status-badge badge-absent"><i class="bi bi-x"></i> No</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if student.photo %}
+            <span style="color:var(--forest);font-size:12px;"><i class="bi bi-robot"></i> Ready</span>
+          {% else %}
+            <span style="color:var(--rust);font-size:12px;">Needs photo</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fileInput  = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const previewImg = document.getElementById('previewImg');
+const fileInfo   = document.getElementById('fileInfo');
+const fileName   = document.getElementById('fileName');
+const submitBtn  = document.getElementById('submitBtn');
+
+// File selected
+fileInput.addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    previewImg.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  // Show file info
+  fileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  fileInfo.style.display = 'block';
+  submitBtn.disabled = false;
+  submitBtn.style.opacity = '1';
+});
+
+// Drag and drop
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    fileInput.files = e.dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change'));
+  }
+});
+
+// Loading state on submit
+document.getElementById('aiForm').addEventListener('submit', function() {
+  submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing…';
+  submitBtn.disabled  = true;
+});
+</script>
+{% endblock %}

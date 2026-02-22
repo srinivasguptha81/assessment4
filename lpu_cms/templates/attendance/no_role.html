@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}No Role Assigned{% endblock %}
+{% block page_title %}Account Setup Required{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center" style="margin-top:60px;">
+  <div class="col-md-6 text-center fade-up">
+    <div style="font-size:64px;margin-bottom:20px;">🏛</div>
+    <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:600;margin-bottom:10px;">
+      No Role Assigned
+    </div>
+    <p style="color:var(--slate);font-size:14px;margin-bottom:28px;">
+      Your account has been created but hasn't been assigned a role (Faculty or Student) yet.
+      Please contact the system administrator to complete your profile setup.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <a href="/admin/" class="btn-gold">Go to Admin Panel</a>
+      <a href="/accounts/logout/" class="btn-outline">Logout</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

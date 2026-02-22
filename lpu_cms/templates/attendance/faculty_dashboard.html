@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Faculty Dashboard{% endblock %}
+{% block page_title %}Faculty Dashboard{% endblock %}
+{% block nav_faculty %}active{% endblock %}
+
+{% block content %}
+<!-- BANNER -->
+<div class="page-banner fade-up">
+  <div class="banner-tag">● Faculty Portal</div>
+  <div class="banner-title">{{ faculty.user.get_full_name }}</div>
+  <div class="banner-sub">{{ faculty.department }} · ID: {{ faculty.faculty_id }}</div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4 fade-up-1">
+    <div class="stat-card gold">
+      <span class="stat-icon">📚</span>
+      <span class="stat-value">{{ courses.count }}</span>
+      <div class="stat-label">My Courses</div>
+    </div>
+  </div>
+  <div class="col-md-4 fade-up-2">
+    <div class="stat-card rust">
+      <span class="stat-icon">📋</span>
+      <span class="stat-value">{{ recent_sessions.count }}</span>
+      <div class="stat-label">Recent Sessions</div>
+    </div>
+  </div>
+  <div class="col-md-4 fade-up-3">
+    <div class="stat-card green">
+      <span class="stat-icon">🚨</span>
+      <span class="stat-value">{{ recent_absences }}</span>
+      <div class="stat-label">Absences (7 days)</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ACTION -->
+<div class="mb-4 fade-up-2">
+  <a href="{% url 'attendance:start_session' %}" class="btn-gold" style="font-size:14px;padding:11px 24px;">
+    <i class="bi bi-plus-circle"></i> Start New Attendance Session
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- MY COURSES -->
+  <div class="col-md-5 fade-up-2">
+    <div class="lpu-card">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">My Courses</div>
+      </div>
+      {% for course in courses %}
+      <div style="padding:14px 22px;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:14px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--parchment);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📖</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:500;font-size:13.5px;">{{ course.name|truncatechars:32 }}</div>
+          <div class="mono" style="font-size:11px;color:var(--slate);">{{ course.code }} · {{ course.students.count }} students</div>
+        </div>
+        <a href="{% url 'attendance:course_report' course.id %}" class="btn-outline" style="padding:5px 11px;font-size:11px;white-space:nowrap;">
+          Report
+        </a>
+      </div>
+      {% empty %}
+      <div style="padding:28px;text-align:center;color:var(--slate);font-size:13px;">No courses assigned yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- RECENT SESSIONS -->
+  <div class="col-md-7 fade-up-3">
+    <div class="lpu-card">
+      <div class="lpu-card-header">
+        <div class="lpu-card-title">Recent Sessions</div>
+        <a href="{% url 'attendance:start_session' %}" class="btn-gold" style="padding:6px 14px;font-size:12px;">
+          <i class="bi bi-plus"></i> New Session
+        </a>
+      </div>
+      <table class="lpu-table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for session in recent_sessions %}
+          <tr>
+            <td>
+              <div style="font-weight:500;">{{ session.course.code }}</div>
+              <div style="font-size:11px;color:var(--slate);">{{ session.course.name|truncatechars:22 }}</div>
+            </td>
+            <td class="mono" style="font-size:12px;">{{ session.date }}</td>
+            <td class="mono" style="font-size:12px;">{{ session.start_time|time:"H:i" }}</td>
+            <td>
+              {% if session.is_makeup %}
+                <span class="status-badge badge-late">Make-up</span>
+              {% else %}
+                <span class="status-badge badge-present">Regular</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+                <a href="{% url 'attendance:mark_attendance' session.id %}"
+                   class="btn-outline"
+                   style="padding:4px 10px;font-size:11px;"
+                   title="Mark attendance manually — P/A/L/E per student">
+                  <i class="bi bi-pencil-square"></i> Manual
+                </a>
+                <a href="{% url 'attendance:ai_mark' session.id %}"
+                   class="btn-gold"
+                   style="padding:4px 10px;font-size:11px;"
+                   title="Upload class photo — AI marks automatically">
+                  <i class="bi bi-robot"></i> AI
+                </a>
+                <a href="{% url 'attendance:session_detail' session.id %}"
+                   class="btn-outline"
+                   style="padding:4px 10px;font-size:11px;"
+                   title="View session results">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;color:var(--slate);padding:28px;font-size:13px;">
+              No sessions yet. <a href="{% url 'attendance:start_session' %}" style="color:var(--gold);">Start one →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
